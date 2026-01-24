@@ -21,7 +21,6 @@ const messages = ref([
     explanation: '已为您查询到本月销量排名前三的品类。'
   }
 ])
-const chatScrollRef = ref<HTMLElement | null>(null);
 // 1.绑定选中值
 const selectedKey = ref('ai');
 
@@ -84,32 +83,29 @@ const handleScrollToBottom = () => {
     <main class="main">
       <header class="chat-header">
         <!-- 使用封装的分段选择器组件 -->
-    <Chathead
+      <Chathead
       v-model="selectedKey"
       :options="[
         { key: 'ai', label: '华智Ai', icon: '✨' },
         { key: 'ultra', label: '华智Ultra', icon: '⚡' }
       ]"
       @change="handleSegChange"
-    />
+      />
       </header>
 
-      <div class="chat-scroll" ref="chatScrollRef">
-    <div class="chat-list">
+      <div class="chat-scroll">
       <!-- 遍历渲染所有消息卡片 -->
       <MessageBubble
-        v-for="(msg, index) in messages"
-        :key="index"
-        :msg="msg" 
       />
-    </div>
-  </div>
-      
-      <ChatInput
+      </div>
+      <div class="chat-input">
+        <ChatInput
         @mode-change="handleModeChange"
         @send-text="handleSendText"
         @scroll-to-bottom="handleScrollToBottom"
        />
+      </div>
+      
     </main>
 
     <!-- 右侧 -->
@@ -150,33 +146,20 @@ const handleScrollToBottom = () => {
     flex-shrink: 0;
     h2 { margin: 0; color: var(--text); font-size: 22px; }
   }
-
-  /* 中间滚动区域：占满剩余空间 */
 .chat-scroll {
-    flex: 1; // 关键：替代height:100%，占满header和input之间的所有空间
-    overflow-y: auto; // 内容超出时滚动
+    flex: 1; 
     padding: 16px;
     background: #f9fafb;
   }
 
-/* 美化滚动条 */
-.chat-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-.chat-scroll::-webkit-scrollbar-track {
-  background: #f3f4f6;
-  border-radius: 3px;
-}
-.chat-scroll::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 3px;
-}
-.chat-scroll::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
 // 固定底部输入框
   .chat-input {
-    flex-shrink: 0;
+      position: absolute; /* 脱离文档流，悬浮在其他内容上 */
+      bottom: 0; /* 距离父容器底部 0px */
+      left: 0;   /* 距离父容器左侧 0px */
+      right: 0;  /* 距离父容器右侧 0px */
+      padding: 16px;
+      z-index: 20;
   }
 }
 </style>

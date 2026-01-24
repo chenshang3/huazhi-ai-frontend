@@ -100,23 +100,7 @@ WHERE o.order_date >= DATE_TRUNC('month', CURRENT_DATE)
 GROUP BY c.category_name
 ORDER BY sales_qty DESC
 LIMIT 10;
-
--- 这是额外的SQL注释，用于测试滚动效果
--- 测试行1
--- 测试行2
--- 测试行3
--- 测试行4
--- 测试行5
--- 测试行6
--- 测试行7
--- 测试行8
--- 测试行9
--- 测试行10
--- 测试行11
--- 测试行12
--- 测试行13
--- 测试行14
--- 测试行15`);
+`);
 
 // 3. 查询结果数据（模拟更多数据，测试滚动）
 const resultData = reactive([
@@ -176,8 +160,8 @@ const handlePageChange = (page) => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0 16px 16px;
   width: 100%;
+  overflow-y: auto;
   box-sizing: border-box;
 }
 
