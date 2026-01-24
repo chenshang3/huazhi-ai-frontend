@@ -98,6 +98,7 @@ const handleScrollToBottom = () => {
       <MessageBubble
       />
       </div>
+      
       <div class="chat-input">
         <ChatInput
         @mode-change="handleModeChange"
@@ -124,7 +125,7 @@ const handleScrollToBottom = () => {
   padding: 22px 22px 18px;
   box-sizing: border-box;
   background: linear-gradient(180deg, #f7f9ff 0%, #f3f6ff 100%);
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .sidebar, .right {
@@ -146,10 +147,12 @@ const handleScrollToBottom = () => {
     flex-shrink: 0;
     h2 { margin: 0; color: var(--text); font-size: 22px; }
   }
-.chat-scroll {
+ .chat-scroll {
     flex: 1; 
     padding: 16px;
     background: #f9fafb;
+    overflow-y: auto;
+    padding-bottom: 96px;
   }
 
 // 固定底部输入框
@@ -159,6 +162,7 @@ const handleScrollToBottom = () => {
       left: 0;   /* 距离父容器左侧 0px */
       right: 0;  /* 距离父容器右侧 0px */
       padding: 16px;
+      flex-shrink: 0;
       z-index: 20;
   }
 }
