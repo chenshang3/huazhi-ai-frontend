@@ -159,10 +159,8 @@ const handlePageChange = (page) => {
 .response-card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
   width: 100%;
   overflow-y: auto;
-  box-sizing: border-box;
 }
 
 /* 1. 模块匹配信息卡片 */

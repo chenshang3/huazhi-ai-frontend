@@ -138,8 +138,7 @@ const handleModeChange = (mode: string) => {
         />
         <div class="scroll-bottom-pad"></div>
       </div>
-
-      <!-- 输入框区 -->
+      
       <div class="chat-input">
         <ChatInput
           @mode-change="handleModeChange"
@@ -170,7 +169,7 @@ const handleModeChange = (mode: string) => {
   padding: 22px 22px 18px;
   box-sizing: border-box;
   background: linear-gradient(180deg, #f7f9ff 0%, #f3f6ff 100%);
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .sidebar, .right {
@@ -185,13 +184,19 @@ const handleModeChange = (mode: string) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden;
-  .chat-header { text-align: center; padding: 10px; flex-shrink: 0; }
-  .chat-scroll {
-    flex: 1; padding: 16px; overflow-y: auto; background: transparent;
-    &::-webkit-scrollbar { width: 4px; }
-    &::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }
-    .scroll-bottom-pad { height: 140px; flex-shrink: 0; }
+  overflow: hidden; // 关键：防止主容器溢出
+  
+  .chat-header {
+    text-align: center;
+    padding: 10px;
+    flex-shrink: 0;
+  }
+ .chat-scroll {
+    flex: 1; 
+    padding: 16px;
+    background: #f9fafb;
+    overflow-y: auto;
+    padding-bottom: 96px;
   }
   
   .chat-input {
