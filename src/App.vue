@@ -25,27 +25,28 @@ const messages = ref([
 ])
 
 const selectedKey = ref('ai')
-const chatScrollRef = ref<HTMLElement | null>(null) // 绑定滚动容器的引用
+const chatScrollRef = ref<HTMLElement | null>(null)
+
+// 【连接点 A】：存储从右侧面板传过来的“排除名单”
+const excludedTables = ref<string[]>([])
 
 // --- 2. 核心逻辑处理 ---
 
 /**
- * 滚动到底部函数
+ * 滚动到底部
  */
 const scrollToBottom = async () => {
-  // nextTick 确保在 Vue 更新完 DOM（即新消息渲染出来）后再执行滚动
   await nextTick()
   if (chatScrollRef.value) {
     chatScrollRef.value.scrollTo({
       top: chatScrollRef.value.scrollHeight,
-      behavior: 'smooth' // 平滑滚动
+      behavior: 'smooth'
     })
   }
 }
 
 /**
- * 处理发送文本（由 ChatInput 组件触发）
- * @param {object} data - { content: 输入内容, mode: 当前模式 }
+ * 处理发送文本（核心业务逻辑）
  */
 const handleSendText = (data: { content: string; mode: string }) => {
   if (!data.content.trim()) return
@@ -56,32 +57,54 @@ const handleSendText = (data: { content: string; mode: string }) => {
     content: data.content
   })
 
-  // 2. 触发滚动
+  // 【核心逻辑】：在这里，你可以同时拿到“消息内容”和“排除名单”
+  console.log('--- 准备提交后端 ---')
+  console.log('用户问题:', data.content)
+  console.log('匹配模式:', data.mode)
+  console.log('排除名单 (Exclude):', excludedTables.value) 
+  // 以后对接 API 就是：axios.post('/api/chat', { query: data.content, excludes: excludedTables.value })
+
   scrollToBottom()
 
-  // 3. 模拟后端/AI 回复（演示用）
+  // 2. 模拟 AI 回复
   setTimeout(() => {
     messages.value.push({
       role: 'assistant',
       content: '正在处理您的请求...',
-      explanation: `当前执行模式：${data.mode === 'auto' ? '自动匹配' : '手动匹配'}`
+      explanation: excludedTables.value.length > 0 
+        ? `已为您过滤了以下表：${excludedTables.value.join(', ')}` 
+        : '当前未排除任何数据表。'
     })
     scrollToBottom()
   }, 800)
 }
 
 /**
- * 处理模式切换
+ * 【连接点 B】：处理来自 CatalogPanel 的排除名单更新
  */
-const handleModeChange = (mode: string) => {
-  console.log('当前选择的匹配模式：', mode)
+const handleUpdateExclude = (list: string[]) => {
+  excludedTables.value = list
+  console.log('App.vue 已同步最新的排除名单:', list)
 }
 
 /**
- * 切换 AI 模型
+ * 【连接点 C】：处理来自 CatalogPanel 的“执行”操作
  */
+const handleExecuteFeature = (featureName: string) => {
+  // 当点击右侧“执行”时，直接调用 handleSendText 模拟发送
+  handleSendText({
+    content: `帮我执行：${featureName}`,
+    mode: 'auto' // 默认使用自动模式
+  })
+}
+
+// 模型切换逻辑
 const handleSegChange = (aiModel: string) => {
-  console.log('外部监听选中项：', aiModel)
+  console.log('切换模型：', aiModel)
+}
+
+const handleModeChange = (mode: string) => {
+  console.log('切换模式：', mode)
 }
 </script>
 
@@ -113,7 +136,6 @@ const handleSegChange = (aiModel: string) => {
           :key="index"
           :data="item"
         />
-        <!-- 底部占位符：防止最后一条消息被输入框遮挡 -->
         <div class="scroll-bottom-pad"></div>
       </div>
 
@@ -129,13 +151,17 @@ const handleSegChange = (aiModel: string) => {
 
     <!-- 右侧：目录/详情面板 -->
     <aside class="right">
-      <CatalogPanel />
+      <!-- 关键点：监听子组件传出来的两个事件 -->
+      <CatalogPanel 
+        @update-exclude="handleUpdateExclude"
+        @execute-feature="handleExecuteFeature"
+      />
     </aside>
   </div>
 </template>
 
 <style lang="scss">
-// 全局变量建议在其他 CSS 文件定义，这里保留布局逻辑
+/* 保持你原来的样式不变 */
 .app {
   height: 100vh;
   display: grid;
@@ -148,7 +174,7 @@ const handleSegChange = (aiModel: string) => {
 }
 
 .sidebar, .right {
-  background: #ffffff; // 建议改回具体颜色或变量
+  background: #ffffff;
   border-radius: 20px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
   overflow: hidden;
@@ -159,44 +185,18 @@ const handleSegChange = (aiModel: string) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  overflow: hidden; // 关键：防止主容器溢出
-  
-  .chat-header {
-    text-align: center;
-    padding: 10px;
-    flex-shrink: 0;
-  }
-
+  overflow: hidden;
+  .chat-header { text-align: center; padding: 10px; flex-shrink: 0; }
   .chat-scroll {
-    flex: 1; 
-    padding: 16px;
-    overflow-y: auto; // 开启滚动
-    background: transparent;
-    
-    // 隐藏滚动条（可选）
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: #e0e0e0;
-      border-radius: 10px;
-    }
-
-    .scroll-bottom-pad {
-      height: 140px; // 高度应略大于 chat-input 的高度
-      flex-shrink: 0;
-    }
+    flex: 1; padding: 16px; overflow-y: auto; background: transparent;
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 10px; }
+    .scroll-bottom-pad { height: 140px; flex-shrink: 0; }
   }
-
-  // 固定底部输入框
+  
   .chat-input {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 20px;
-      z-index: 20;
-      background: linear-gradient(180deg, rgba(247,249,255,0) 0%, rgba(247,249,255,1) 50%); // 增加渐变遮罩感
+      position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; z-index: 20;
+      background: linear-gradient(180deg, rgba(247,249,255,0) 0%, rgba(247,249,255,1) 50%);
   }
 }
 </style>
