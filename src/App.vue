@@ -116,8 +116,7 @@ const handleSegChange = (aiModel: string) => {
         <!-- 底部占位符：防止最后一条消息被输入框遮挡 -->
         <div class="scroll-bottom-pad"></div>
       </div>
-
-      <!-- 输入框区 -->
+      
       <div class="chat-input">
         <ChatInput
           @mode-change="handleModeChange"
@@ -144,7 +143,7 @@ const handleSegChange = (aiModel: string) => {
   padding: 22px 22px 18px;
   box-sizing: border-box;
   background: linear-gradient(180deg, #f7f9ff 0%, #f3f6ff 100%);
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .sidebar, .right {
@@ -166,35 +165,22 @@ const handleSegChange = (aiModel: string) => {
     padding: 10px;
     flex-shrink: 0;
   }
-
-  .chat-scroll {
+ .chat-scroll {
     flex: 1; 
     padding: 16px;
-    overflow-y: auto; // 开启滚动
-    background: transparent;
-    
-    // 隐藏滚动条（可选）
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-    &::-webkit-scrollbar-thumb {
-      background: #e0e0e0;
-      border-radius: 10px;
-    }
-
-    .scroll-bottom-pad {
-      height: 140px; // 高度应略大于 chat-input 的高度
-      flex-shrink: 0;
-    }
+    background: #f9fafb;
+    overflow-y: auto;
+    padding-bottom: 96px;
   }
 
   // 固定底部输入框
   .chat-input {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 20px;
+      position: absolute; /* 脱离文档流，悬浮在其他内容上 */
+      bottom: 0; /* 距离父容器底部 0px */
+      left: 0;   /* 距离父容器左侧 0px */
+      right: 0;  /* 距离父容器右侧 0px */
+      padding: 16px;
+      flex-shrink: 0;
       z-index: 20;
       background: linear-gradient(180deg, rgba(247,249,255,0) 0%, rgba(247,249,255,1) 50%); // 增加渐变遮罩感
   }
