@@ -60,50 +60,47 @@ const scrollToBottom = async () => {
     })
   }
 }
+// --- 新增：接收历史对话切换事件 ---
+const handleChatChange = (chat: ChatHistoryItem) => {
+  currentChat.value = chat;
+  // 同步消息列表
+  messages.value = chat.messages;
+  // 切换后滚动到底部
+  nextTick(() => scrollToBottom());
+};
 
-
-/**
- * 处理发送文本（核心业务逻辑）
- */
-/**
- * 处理发送文本（核心业务逻辑）
- */
+// --- 改造发送逻辑：消息存入当前激活对话 ---
 const handleSendText = async (data: { content: string; mode: string }) => {
   if (!data.content.trim()) return
-
-  // 1. 先把用户说的话显示在界面右侧
-  messages.value.push({
-    role: 'user',
-    content: data.content
-  })
+ // 新增：如果是新对话（标题为“新对话”），自动用第一条用户消息作为标题
+  if (currentChat.value.title === '新对话') {
+    currentChat.value.title = data.content.length > 20 ? `${data.content.slice(0, 20)}...` : data.content;
+    currentChat.value.time = '今天'; // 更新时间
+  }
+  // 1. 先把用户消息添加到当前对话
+  const userMessage = { role: 'user', content: data.content };
+  currentChat.value.messages.push(userMessage);
+  messages.value = [...currentChat.value.messages]; // 触发响应式更新
   scrollToBottom()
 
   try {
-    // 2. 调用你小组成员给的 mock 接口
-    // 传参给后端：根据接口定义，可能需要 query 等
-    const res = await getMockData({
-      query: data.content,
-      mode: data.mode
-    })
-
-    // 3. 拿到结果并显示在左侧 AI 气泡
-    // 注意：这里需要根据你后端返回的实际结构来取值
-    // 假设后端返回结构是 { data: { sql: '...', tableData: [...] } }
+    const res = await getMockData({ query: data.content, mode: data.mode })
     const serverData = res.data
     
-    messages.value.push({
+    // 2. 添加AI消息到当前对话
+    const aiMessage = {
       role: 'assistant',
       content: serverData.explanation || '查询已完成，结果如下：',
       sql: serverData.sql || '', 
-      tableData: serverData.tableData || serverData.results || [], // 兼容不同字段名
+      tableData: serverData.tableData || serverData.results || [],
       explanation: serverData.explanation || ''
-    })
+    };
+    currentChat.value.messages.push(aiMessage);
+    messages.value = [...currentChat.value.messages]; // 触发响应式更新
 
   } catch (error) {
-    // 4. 【关键防御】如果后端没启动（localhost:8084报错），手动模拟一套数据，不让界面卡死
     console.error('接口请求失败，进入备用模拟模式:', error)
-    
-    messages.value.push({
+    const mockAiMessage = {
       role: 'assistant',
       content: `（模拟回复）关于“${data.content}”的查询结果如下：`,
       sql: "SELECT category, SUM(sales) FROM mock_table GROUP BY category;",
@@ -112,11 +109,13 @@ const handleSendText = async (data: { content: string; mode: string }) => {
         { category: '日用百货', sales: 800, gmv: 20000 }
       ],
       explanation: "由于后端服务（localhost:8084）未启动，当前显示的是前端预设的模拟数据。"
-    })
+    };
+    currentChat.value.messages.push(mockAiMessage);
+    messages.value = [...currentChat.value.messages]; // 触发响应式更新
   } finally {
     scrollToBottom()
   }
-}
+};
 /**
  * 【连接点 B】：处理来自 CatalogPanel 的排除名单更新
  */
@@ -150,7 +149,7 @@ const handleModeChange = (mode: string) => {
   <div class="app">
     <!-- 左侧：历史记录 -->
     <aside class="sidebar">
-      <HistorySidebar />
+      <HistorySidebar @chat-change="handleChatChange" />
     </aside>
     
     <!-- 中间：主聊天区 -->
