@@ -7,8 +7,23 @@ import Chathead from './components/Chathead.vue'
 import ChatInput from './components/ChatInput.vue'
 import { getMockData } from './api/mock.ts' 
 
-// --- 1. 数据定义 ---
-const messages = ref([
+// 1. 定义表格行数据的类型（因为 SQL 查询结果字段不固定，建议用索引签名）
+interface TableRow {
+  category: string;
+  [key: string]: any; // 允许添加任何其他属性，如 sales, sales_qty, gmv 等
+}
+
+// 2. 定义单条消息的类型
+interface Message {
+  role: 'user' | 'assistant';
+  content?: string;
+  sql?: string;
+  tableData?: TableRow[]; // 使用上面定义的灵活类型
+  explanation?: string;
+}
+
+// 3. 在定义 ref 时传入这个类型
+const messages = ref<Message[]>([
   {
     role: 'user',
     content: '帮我查询本月品类销量 Top3'
@@ -93,8 +108,8 @@ const handleSendText = async (data: { content: string; mode: string }) => {
       content: `（模拟回复）关于“${data.content}”的查询结果如下：`,
       sql: "SELECT category, SUM(sales) FROM mock_table GROUP BY category;",
       tableData: [
-        { category: '电子产品', sales_qty: 1200, gmv: 500000 },
-        { category: '日用百货', sales_qty: 800, gmv: 20000 }
+        { category: '电子产品', sales: 1200, gmv: 500000 },
+        { category: '日用百货', sales: 800, gmv: 20000 }
       ],
       explanation: "由于后端服务（localhost:8084）未启动，当前显示的是前端预设的模拟数据。"
     })

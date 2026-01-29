@@ -1,3 +1,4 @@
+// huazhi-ai-frontend/src/api/index.ts
 import axios from 'axios';
 
 // 1. 创建 Axios 实例

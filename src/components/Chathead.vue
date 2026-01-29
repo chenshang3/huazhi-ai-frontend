@@ -1,10 +1,11 @@
+<!-- ./src/components/Chathead.vue -->
 <template>
   <!-- 新增：外层椭圆容器（带阴影） -->
   <div class="seg-outer-container" :style="outerContainerStyle">
     <!-- 原有的分段选择器容器 -->
     <div class="segmented-container" :style="containerStyle">
       <button
-        v-for="(item, index) in options"
+        v-for="item, in options"
         :key="item.key"
         class="seg-btn"
         :class="{ active: activeKey === item.key }"
@@ -28,105 +29,79 @@
 
 <script setup lang="ts">
 import { computed, watch } from 'vue';
-const outerContainerStyle = {}; 
 
-// 定义组件 Props，提供灵活的配置能力
+// 1. 定义选项的接口
+interface OptionItem {
+  key: string;
+  label: string;
+  icon?: string;
+}
+
+// 2. 显式定义 Props
+// 使用这种写法能确保模板 100% 识别到 options
 const props = defineProps({
-  // 选项列表，必传，格式：[{ key: 'xxx', label: 'xxx', icon: 'xxx' }]
   options: {
-    type: Array,
+    type: Array as () => OptionItem[],
     required: true,
-    validator: (val) => {
-      // 校验选项格式，确保每个选项都有 key 和 label
-      return val.every(item => item.key && item.label);
-    }
+    default: () => []
   },
-  // 默认选中的 key
-  modelValue: {
-    type: String,
-    default: ''
-  },
-  // 椭圆背景颜色
-  bgColor: {
-    type: String,
-    default: '#5a7bff'
-  },
-  // 未选中文字颜色
-  textColor: {
-    type: String,
-    default: '#666'
-  },
-  // 选中文字颜色
-  activeTextColor: {
-    type: String,
-    default: '#fff'
-  },
-  // 容器背景色
-  containerBg: {
-    type: String,
-    default: '#f5f5f5'
-  },
-  // 动画时长（毫秒）
-  duration: {
-    type: Number,
-    default: 300
-  },
-  // 按钮内边距，控制组件大小
-  padding: {
-    type: String,
-    default: '8px 20px'
-  }
+  modelValue: { type: String, default: '' },
+  bgColor: { type: String, default: '#5a7bff' },
+  textColor: { type: String, default: '#666' },
+  activeTextColor: { type: String, default: '#fff' },
+  containerBg: { type: String, default: '#f5f5f5' },
+  duration: { type: Number, default: 300 },
+  padding: { type: String, default: '8px 20px' }
 });
 
-// 定义事件，实现 v-model 双向绑定（预留接口核心）
+const outerContainerStyle = {}; 
+
 const emit = defineEmits(['update:modelValue', 'change']);
 
-// 当前激活的 key
+// 3. 计算激活的 key
 const activeKey = computed({
   get() {
-    // 如果默认值不在选项中，取第一个选项的 key
     return props.options.some(item => item.key === props.modelValue) 
       ? props.modelValue 
       : props.options[0]?.key || '';
   },
-  set(val) {
+  set(val: string) {
     emit('update:modelValue', val);
-    emit('change', val); // 触发自定义 change 事件，供外部监听
+    emit('change', val);
   }
 });
 
-// 计算椭圆背景的宽度（平分容器宽度）
+// 4. 背景宽度
 const bgWidth = computed(() => {
-  return `calc(${100 / props.options.length}% - 8px)`;
+  const len = props.options?.length || 1;
+  return `calc(${100 / len}% - 8px)`;
 });
 
-// 计算椭圆背景的左侧偏移量
+// 5. 左侧偏移量
 const bgLeft = computed(() => {
+  const len = props.options?.length || 1;
   const activeIndex = props.options.findIndex(item => item.key === activeKey.value);
-  return `calc(${activeIndex * (100 / props.options.length)}% + 4px)`;
+  return `calc(${(activeIndex === -1 ? 0 : activeIndex) * (100 / len)}% + 4px)`;
 });
 
-// 容器样式（整合自定义样式）
 const containerStyle = computed(() => ({
   backgroundColor: props.containerBg,
 }));
 
-// 按钮样式（整合自定义样式）
 const btnStyle = computed(() => ({
   color: props.textColor,
   padding: props.padding,
 }));
 
-// 按钮点击事件处理
-const handleBtnClick = (key) => {
+const handleBtnClick = (key: string) => {
   activeKey.value = key;
 };
 
-// 监听激活状态变化（可选，用于内部逻辑）
 watch(activeKey, (newVal) => {
   console.log('分段选择器选中项变更：', newVal);
 });
 </script>
+
 
 <style scoped>
 /* 新增：外层椭圆容器样式 */

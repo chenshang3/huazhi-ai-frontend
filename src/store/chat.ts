@@ -1,7 +1,8 @@
+// huazhi-ai-frontend/src/store/chat.ts
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
-import { chatProcess } from '@/api'; // 1. 确保这里导入的是 chatProcess
+import { chatProcess } from '../api'; // 1. 确保这里导入的是 chatProcess
 
 export const useChatStore = defineStore('chat', () => {
   const conversationId = ref(uuidv4()); // 初始化会话 ID
