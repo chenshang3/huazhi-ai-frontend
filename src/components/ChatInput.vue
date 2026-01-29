@@ -117,7 +117,7 @@ const toggleSpeechRecognition = () => {
   }
 };
 
-// 调用大模型API（修改：移除自动清空输入框）
+// 调用大模型API
 const callLLMAPI = async (prompt: string) => {
   if (!prompt.trim()) return;
   isLoading.value = true;
@@ -158,12 +158,10 @@ const callLLMAPI = async (prompt: string) => {
     alert(`大模型调用失败：${(err as Error).message}`);
   } finally {
     isLoading.value = false;
-    // 注释掉：不再自动清空输入框，保留识别的文字
-    // inputValue.value = '';
   }
 };
 
-// 生命周期（无修改）
+// 生命周期
 onMounted(() => {
   initSpeechRecognition();
   document.addEventListener('click', (e) => {
@@ -235,7 +233,6 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* 样式无修改，保留原有样式 */
 .input-dialog-container {
   display: flex;
   align-items: flex-end;
